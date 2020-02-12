@@ -1,0 +1,41 @@
+endpoint: http://localhost:8081/getLanguages
+
+path:
+  "/api/v2/languages":
+    get:
+      description: "Collection of all available languages"
+      parameters:
+	-name: language
+	 schema:
+            type: string
+	-name: text
+	 schema:
+            type: string
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "All Languages"
+          example:
+		-name: "Arabic"
+		 code: "ar"
+		 longCode: "ar"
+		-name: "Arabic (Algeria)"
+		 code: "ar"
+		 longCode: "ar-DZ"
+
+endpoint: http://localhost:8081/getBook
+
+path:
+  "/api/v2/languages":
+    get:
+      description: "Collection of books"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Return a book"
+          example:
+		-software:
+		   name: "LanguageTool"
+		   version: "4.9-SNAPSHOT"

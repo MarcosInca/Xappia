@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:request-config name="RequestConfiguration" doc:name="HTTP Request configuration" doc:id="3d76d982-a26e-4cb4-ba84-b401432af984" >
+		<http:request-connection host="languagetool.org" port="80" />
+	</http:request-config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="cb3bb19f-e888-4928-bb70-2d7be4c05285" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_Lenguages" doc:name="HTTP Request configuration" doc:id="f7a25359-0aaf-4e6e-ba94-510ee32b1f18" >
+		<http:request-connection host="languagetool.org" port="80" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_Book" doc:name="HTTP Request configuration" doc:id="4dec876e-af02-408c-a822-08b8c186959e" >
+		<http:request-connection host="languagetool.org" port="80" />
+	</http:request-config>
+	<flow name="GetBookEndpoint" doc:id="88030baf-312d-414c-8db8-eb388b03af4f" >
+		<http:listener doc:name="Listener" doc:id="8485432e-97ac-4761-9ee5-d62c4e5d8e91" config-ref="HTTP_Listener_config" path="/getBook">
+			<http:error-response statusCode="404">
+				<http:body ><![CDATA[#[output text/plain
+---"An error has ocurred"]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="b17c6618-eb5c-4c3e-b92f-5864ff45e1ae" message="Get book details"/>
+		<http:request method="GET" doc:name="Request" doc:id="b672b6cc-fa4a-468b-89e5-c0912bef8f18" config-ref="HTTP_Request_Book" path="/api/v2/check">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	language : attributes.queryParams.language,
+	text : attributes.queryParams.text
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="0d3eeeff-1f99-422e-84fc-774e1eff02e2" message="#[message.payload]"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="f4c59da6-aa6d-40c1-be44-57a5ba6cba20" type="HTTP:NOT_FOUND">
+				<ee:transform doc:name="Transform Message" doc:id="fdc9bd35-05d8-43c6-a911-23226d0e83b4" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "Book was not found"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="GetLanguagesEndpoint" doc:id="3dcbdacb-774a-4dd3-9953-50b6059771c6" >
+		<http:listener doc:name="Listener" doc:id="93da15a1-66cb-40c0-9c96-73b35abb4c8a" config-ref="HTTP_Listener_config" path="/getLanguages"/>
+		<logger level="INFO" doc:name="Logger" doc:id="6b005b77-b170-4c0c-b166-ddf958746e54" message="Get all languages"/>
+		<http:request method="GET" doc:name="Request" doc:id="1cf5ad40-2c0c-4246-bf66-fb2b70c010bb" config-ref="HTTP_Request_Lenguages" path="/api/v2/languages"/>
+		<logger level="INFO" doc:name="Logger" doc:id="fa5e9053-78e3-4b77-9cfe-b7045876cac2" message="#[message.payload]"/>
+	</flow>
+</mule>
